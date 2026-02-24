@@ -276,7 +276,7 @@
     }
 
     if (reason === 'completed') {
-      setTimeout(showModals, 2000)
+      setTimeout(showModals, 1500)
     } else {
       showModals()
     }
@@ -373,7 +373,7 @@
     box.style.maxWidth = '480px'
 
     box.innerHTML = `
-      <h3 style="margin-bottom: 14px; font-size: 15px;">Answer the question</h3>
+      <h3 style="margin-bottom: 14px; font-size: 15px; color: #ddd;">Answer the question</h3>
       <p style="margin-bottom: 14px; color: #ddd; line-height: 1.4; text-align: left;">${question}</p>
       <textarea id="answer-input" rows="3" placeholder="Enter your answer here..." style="width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 6px; border: 1px solid #666; background: #444; color: #fff; font-size: 13px; resize: vertical; font-family: Arial, sans-serif;"></textarea>
       <button id="answer-submit" style="margin-top: 12px; padding: 10px 24px; border-radius: 6px; border: none; background: #007bff; color: #fff; cursor: pointer; font-size: 13px; font-weight: bold;">Confirm</button>
@@ -421,7 +421,7 @@
     box.style.minWidth = '350px'
 
     box.innerHTML = `
-      <h3 style="margin-bottom: 12px;">Rate the difficulty of the task</h3>
+      <h3 style="margin-bottom: 12px; color: #ddd;">Rate the difficulty of the task</h3>
       <p style="margin-bottom: 12px; white-space: nowrap;">Choose a number from 1 (easy) to 7 (difficult)</p>
       <div id="difficulty-buttons" style="display: flex; justify-content: center; gap: 6px;">
         ${[1, 2, 3, 4, 5, 6, 7]
@@ -521,10 +521,61 @@
     const info = {
       type: 'keydown',
       time: new Date().toISOString(),
-      key: e.key
+      key: e.key,
+      element: e.target.tagName,
+      id: e.target.id || 'no-id'
     }
     currentLog.push(info)
     persistState()
+  })
+
+  // --- Scroll tracking (throttled) ---
+  let lastScrollTime = 0
+  let scrollPersistTimeout = null
+  document.addEventListener('scroll', () => {
+    if (!loggingActive || inModal) return
+
+    const now = Date.now()
+    if (now - lastScrollTime < 300) return
+    lastScrollTime = now
+
+    const info = {
+      type: 'scroll',
+      time: new Date().toISOString(),
+      scrollX: Math.round(window.scrollX),
+      scrollY: Math.round(window.scrollY),
+      url: window.location.href
+    }
+    currentLog.push(info)
+
+    // Debounce persist
+    clearTimeout(scrollPersistTimeout)
+    scrollPersistTimeout = setTimeout(() => persistState(), 300)
+  }, { passive: true })
+
+  // --- Mouse position tracking (throttled) ---
+  let mouseStopTimeout = null
+  let lastMousePos = null
+  document.addEventListener('mousemove', (e) => {
+    if (!loggingActive || inModal) return
+
+    const x = e.pageX
+    const y = e.pageY
+
+    clearTimeout(mouseStopTimeout)
+    mouseStopTimeout = setTimeout(() => {
+      if (lastMousePos && lastMousePos.x === x && lastMousePos.y === y) return
+
+      lastMousePos = { x, y }
+      const info = {
+        type: 'mouse_stop',
+        time: new Date().toISOString(),
+        x,
+        y,
+        url: window.location.href
+      }
+      currentLog.push(info)
+    }, 300)
   })
 
   loadState()
