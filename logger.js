@@ -422,7 +422,7 @@
 
     box.innerHTML = `
       <h3 style="margin-bottom: 12px; color: #ddd;">Rate the difficulty of the task</h3>
-      <p style="margin-bottom: 12px; white-space: nowrap;">Choose a number from 1 (easy) to 7 (difficult)</p>
+      <p style="margin-bottom: 12px; white-space: nowrap;">Choose a number from 1 (Very Difficult) to 7 (Very Easy)</p>
       <div id="difficulty-buttons" style="display: flex; justify-content: center; gap: 6px;">
         ${[1, 2, 3, 4, 5, 6, 7]
           .map(
