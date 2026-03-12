@@ -296,11 +296,61 @@
     }
   }
 
+  const showSkipConfirmModal = (onConfirm) => {
+    inModal = true
+    const modal = document.createElement('div')
+    modal.style.position = 'fixed'
+    modal.style.top = '0'
+    modal.style.left = '0'
+    modal.style.width = '100vw'
+    modal.style.height = '100vh'
+    modal.style.backgroundColor = 'rgba(0,0,0,0.5)'
+    modal.style.display = 'flex'
+    modal.style.justifyContent = 'center'
+    modal.style.alignItems = 'center'
+    modal.style.zIndex = '99999'
+
+    const box = document.createElement('div')
+    box.style.background = '#333'
+    box.style.color = '#fff'
+    box.style.padding = '24px 30px'
+    box.style.borderRadius = '10px'
+    box.style.textAlign = 'center'
+    box.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)'
+    box.style.fontFamily = 'Arial, sans-serif'
+    box.style.fontSize = '14px'
+    box.style.minWidth = '300px'
+
+    box.innerHTML = `
+      <h3 style="margin-bottom: 12px; color: #ddd;">Skip task?</h3>
+      <p style="margin-bottom: 20px; color: #aaa;">Are you sure you want to skip this task?</p>
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button id="skip-cancel" style="padding: 8px 20px; border-radius: 6px; border: 1px solid #666; background: #555; color: #fff; cursor: pointer; font-size: 13px; font-weight: bold;">No</button>
+        <button id="skip-confirm" style="padding: 8px 20px; border-radius: 6px; border: none; background: #ffc107; color: #000; cursor: pointer; font-size: 13px; font-weight: bold;">Yes, skip</button>
+      </div>
+    `
+
+    modal.appendChild(box)
+    document.body.appendChild(modal)
+
+    document.getElementById('skip-cancel').onclick = () => {
+      document.body.removeChild(modal)
+      inModal = false
+    }
+
+    document.getElementById('skip-confirm').onclick = () => {
+      document.body.removeChild(modal)
+      inModal = false
+      onConfirm()
+    }
+  }
+
   const skipTask = () => {
     if (loggingActive) return
 
-    const currentTask = tasks[currentTaskIndex]
-    const taskData = {
+    showSkipConfirmModal(() => {
+      const currentTask = tasks[currentTaskIndex]
+      const taskData = {
       task: `task${currentTaskIndex + 1}`,
       type: currentTask.type || 'do',
       description: currentTask.description,
@@ -323,11 +373,12 @@
     timedOut = false
     persistState()
 
-    if (currentTaskIndex >= tasks.length) {
-      showCompletionMessage()
-    } else {
-      updatePanel()
-    }
+      if (currentTaskIndex >= tasks.length) {
+        showCompletionMessage()
+      } else {
+        updatePanel()
+      }
+    })
   }
 
   const finishTask = () => {
